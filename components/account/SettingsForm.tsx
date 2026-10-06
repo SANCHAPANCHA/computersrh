@@ -49,10 +49,10 @@ export function SettingsForm({ profile, email }: { profile: PublicProfile; email
 
   async function logout() {
     setBusy("logout");
-    await getBrowserSupabase()?.auth.signOut();
-    await signOut();
-    router.push("/");
-    router.refresh();
+    await signOut().catch(() => {});
+    await getBrowserSupabase()?.auth.signOut({ scope: "local" }).catch(() => {});
+    // Full reload so every server component re-renders logged out.
+    window.location.assign("/");
   }
 
   async function destroy() {

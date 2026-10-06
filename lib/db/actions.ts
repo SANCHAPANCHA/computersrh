@@ -150,7 +150,11 @@ export async function deleteAccount(): Promise<ActionResult> {
 
 export async function signOut(): Promise<void> {
   const sb = await createSupabaseServer();
-  await sb?.auth.signOut();
+  try {
+    await sb?.auth.signOut();
+  } catch {
+    // Session already gone — cookies are cleared either way.
+  }
   revalidatePath("/", "layout");
 }
 

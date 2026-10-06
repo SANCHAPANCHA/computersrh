@@ -28,7 +28,10 @@ export default async function DashboardPage() {
           <PixelAvatar id={viewer.avatar} size={72} />
           <div className="flex-1">
             <div className="kicker">✧ {builderTitle(best?.score ?? 0, builds.length)}</div>
-            <h1 className="h-display mt-1 text-3xl break-all sm:text-5xl">WELCOME BACK, <span className="text-mint">@{viewer.username}</span></h1>
+            <h1 className="h-display mt-1 text-3xl sm:text-5xl">
+              WELCOME BACK,
+              <span className="block text-mint [overflow-wrap:anywhere]">@{viewer.username}</span>
+            </h1>
           </div>
           <div className="flex flex-wrap gap-3">
             <PixelButton href="/builder" variant="mint">[ BUILD NEW PC ]</PixelButton>
