@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ChallengeCard } from "@/components/community/ChallengeCard";
 import { LeaderboardList } from "@/components/community/LeaderboardList";
 import { HeroRig } from "@/components/home/HeroRig";
@@ -11,6 +12,9 @@ import { EmptyState } from "@/components/ui/States";
 import { COMPONENTS } from "@/data/components";
 import { PRESETS } from "@/data/presets";
 import { getLeaderboard, getTodayChallenge, listBuilds } from "@/lib/db/queries";
+import { listThreads } from "@/lib/db/forum";
+import { ThreadList } from "@/components/forum/ThreadList";
+import { XFeed } from "@/components/news/XFeed";
 import { COMPUTERS_RH_URL, DISCLAIMER } from "@/lib/site";
 
 const STEPS = [
@@ -21,7 +25,7 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  const [featured, leaders, challenge] = await Promise.all([listBuilds("top", 4), getLeaderboard("score", 5), getTodayChallenge()]);
+  const [featured, leaders, challenge, topics] = await Promise.all([listBuilds("top", 4), getLeaderboard("score", 5), getTodayChallenge(), listThreads(undefined, 6)]);
 
   return (
     <div className="page-enter mx-auto flex max-w-6xl flex-col gap-20 sm:gap-24">
@@ -89,6 +93,25 @@ export default async function Home() {
       </section>
 
       {/* LEADERBOARD + CHALLENGE */}
+      {/* NEWS + COMMUNITY */}
+      <section className="grid gap-8 lg:grid-cols-[1fr_1.15fr]" aria-labelledby="news">
+        <RetroWindow title="NEWS_FEED.EXE" tag="𝕏" bodyClassName="p-4 sm:p-5" footerLeft="Mirrored from @ComputersRh on X">
+          <h2 id="news" className="h-display mb-4 text-3xl">LIVE FROM @COMPUTERSRH</h2>
+          <XFeed limit={3} compact />
+        </RetroWindow>
+        <RetroWindow title="COMMUNITY.EXE" bodyClassName="p-4 sm:p-5" footerLeft="Discuss news · share rigs · get help" footerRight={<Link href="/community" className="hover:underline">Open board →</Link>}>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <h2 className="h-display text-3xl">COMMUNITY BOARD</h2>
+            <PixelButton href="/community/new" variant="mint" size="sm">[ NEW TOPIC ]</PixelButton>
+          </div>
+          {topics.length ? (
+            <ThreadList threads={topics} compact />
+          ) : (
+            <EmptyState title="NO TOPICS YET" message="Be the first to start a conversation." action={{ href: "/community/new", label: "NEW TOPIC" }} />
+          )}
+        </RetroWindow>
+      </section>
+
       <section className="grid gap-8 lg:grid-cols-[1fr_1.35fr]">
         <RetroWindow title="LEADERBOARD.DAT" footerLeft="Top score · public builds" footerRight={<a className="hover:underline" href="/leaderboard">Full board →</a>}>
           <h2 className="h-display mb-4 text-3xl">LEADERBOARD</h2>

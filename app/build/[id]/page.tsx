@@ -37,7 +37,7 @@ export default async function BuildPage({ params, searchParams }: PageProps<"/bu
         chaos={build.chaos}
         footerRight={<>♥ {build.likes} likes</>}
         notice={sp.new ? <Notice tone="success" title="BUILD SAVED">Your rig is live. Share it with the world!</Notice> : null}
-        actions={<BuildActions buildId={build.id} likes={build.likes} liked={liked} score={build.score} shareUrl={shareUrl} cardUrl={cardUrl} similarHref={`/builder?parts=${enc}&rgb=${build.rgb}`} saved />}
+        actions={<BuildActions buildId={build.id} likes={build.likes} liked={liked} score={build.score} shareUrl={shareUrl} cardUrl={cardUrl} similarHref={`/builder?parts=${enc}&rgb=${build.rgb}`} discussHref={build.isPublic ? `/community/new?build=${build.id}` : undefined} saved />}
       />
       {isOwner ? (
         <div className="mx-auto w-full max-w-5xl">

@@ -8,14 +8,15 @@ import { PixelProgressBar } from "@/components/ui/PixelProgressBar";
 import { RetroWindow } from "@/components/ui/RetroWindow";
 import { useToast } from "@/components/ui/PixelToast";
 import { saveBuild, type SaveBuildInput } from "@/lib/db/actions";
-import { canFinish, checkCandidate, componentsFor, encodeSelection } from "@/lib/pc-engine";
+import { canFinish, checkCandidate, componentsFor, encodeSelection, hasErrors } from "@/lib/pc-engine";
 import { clearPendingSave } from "@/lib/pending-save";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, CATEGORY_LABELS, type GameComponent } from "@/types/game";
+import { CATEGORIES, CATEGORY_LABELS, RARITIES, type GameComponent } from "@/types/game";
 import { BootSequence } from "./BootSequence";
 import { LivePanel } from "./LivePanel";
 import { PartCard } from "./PartCard";
+import { DEFAULT_FILTERS, PartFilters, type PartFilterState } from "./PartFilters";
 import { RevealScreen } from "./RevealScreen";
 import { SaveModal } from "./SaveModal";
 import { ShareModal } from "./ShareModal";
@@ -30,9 +31,23 @@ export function Builder({ initial, fromUrl }: { initial: Partial<BuilderState>; 
   const [saveOpen, setSaveOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [filters, setFilters] = useState<PartFilterState>(DEFAULT_FILTERS);
 
   const category = CATEGORIES[state.step];
-  const options = useMemo(() => componentsFor(category), [category]);
+  const allOptions = useMemo(() => componentsFor(category), [category]);
+  const options = useMemo(() => {
+    const rank = (c: GameComponent) => RARITIES.indexOf(c.rarity);
+    const list = allOptions
+      .map((c) => ({ c, conflicts: checkCandidate(summary.parts, c) }))
+      .filter(({ c, conflicts }) => (filters.rarity === "ALL" || c.rarity === filters.rarity) && (!filters.compatibleOnly || state.chaos || state.selection[category] === c.id || !hasErrors(conflicts)));
+    const by = {
+      rarity: (a: GameComponent, b: GameComponent) => rank(a) - rank(b) || a.price - b.price,
+      "price-asc": (a: GameComponent, b: GameComponent) => a.price - b.price,
+      "price-desc": (a: GameComponent, b: GameComponent) => b.price - a.price,
+      perf: (a: GameComponent, b: GameComponent) => b.performance - a.performance || a.price - b.price,
+    }[filters.sort];
+    return list.sort((x, y) => by(x.c, y.c));
+  }, [allOptions, filters, summary.parts, state.chaos, state.selection, category]);
   const finish = canFinish(summary.parts, summary.conflicts, state.chaos);
   const doneCount = CATEGORIES.filter((c) => state.selection[c]).length;
 
@@ -181,10 +196,17 @@ export function Builder({ initial, fromUrl }: { initial: Partial<BuilderState>; 
                 </button>
               ) : null}
             </div>
+            <PartFilters value={filters} onChange={setFilters} shown={options.length} total={allOptions.length} chaos={state.chaos} />
             <div className="mt-3 grid gap-3 sm:grid-cols-2" key={category}>
-              {options.map((c, i) => (
+              {options.length === 0 ? (
+                <div className="px-dashed col-span-full px-4 py-8 text-center text-sm text-dim">
+                  NO PARTS MATCH THESE FILTERS
+                  <button type="button" onClick={() => setFilters(DEFAULT_FILTERS)} className="ml-2 text-mint underline-offset-4 hover:underline">reset filters</button>
+                </div>
+              ) : null}
+              {options.map(({ c, conflicts }, i) => (
                 <div key={c.id} className="animate-rise" style={{ animationDelay: `${i * 35}ms` }}>
-                  <PartCard component={c} selected={state.selection[category] === c.id} conflicts={checkCandidate(summary.parts, c)} chaos={state.chaos} onSelect={() => select(c)} />
+                  <PartCard component={c} selected={state.selection[category] === c.id} conflicts={conflicts} chaos={state.chaos} onSelect={() => select(c)} />
                 </div>
               ))}
             </div>

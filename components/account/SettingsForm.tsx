@@ -52,6 +52,7 @@ export function SettingsForm({ profile, email }: { profile: PublicProfile; email
     await signOut().catch(() => {});
     await getBrowserSupabase()?.auth.signOut({ scope: "local" }).catch(() => {});
     // Full reload so every server component re-renders logged out.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.assign("/");
   }
 

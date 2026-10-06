@@ -1,10 +1,16 @@
 // Regenerates the game-data seed migration from data/*.ts so the database and
 // the app always share one catalog. Run: npm run db:seed:generate
+//
+// Every statement is an idempotent upsert. Applied migrations never re-run, so
+// when the catalog changes bump OUTPUT to a new timestamp instead of editing an
+// older seed file.
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { COMPONENTS } from "../data/components";
 import { ACHIEVEMENTS } from "../data/achievements";
 import { CHALLENGE_TEMPLATES } from "../data/challenges";
+
+const OUTPUT = "20261007000100_game_data_v2.sql";
 
 const q = (v: string) => `'${v.replace(/'/g, "''")}'`;
 const j = (v: unknown) => `${q(JSON.stringify(v))}::jsonb`;
@@ -46,6 +52,6 @@ join templates t on t.idx = ((d::date - date '1970-01-01') % ${CHALLENGE_TEMPLAT
 on conflict (id) do nothing;
 `;
 
-const out = join(import.meta.dirname, "../supabase/migrations/20261006000100_seed_game_data.sql");
+const out = join(import.meta.dirname, "../supabase/migrations", OUTPUT);
 writeFileSync(out, sql);
 console.log(`wrote ${out} (${COMPONENTS.length} components, ${ACHIEVEMENTS.length} achievements, ${CHALLENGE_TEMPLATES.length} challenge templates)`);

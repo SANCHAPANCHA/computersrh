@@ -1,8 +1,9 @@
 // Fictional RH PC LAB game components. None of these are real products or
 // official Computers RH items.
 import type { GameComponent } from "../types/game";
+import { EXPANSION_COMPONENTS } from "./components-expansion";
 
-export const COMPONENTS: GameComponent[] = [
+const BASE_COMPONENTS: GameComponent[] = [
   // ───────── CASES ─────────
   {
     id: "case-retrobox",
@@ -762,3 +763,5 @@ export const COMPONENTS: GameComponent[] = [
     metadata: { dpi: 36000, weightG: 55, wireless: true, rgb: true },
   },
 ];
+
+export const COMPONENTS: GameComponent[] = [...BASE_COMPONENTS, ...EXPANSION_COMPONENTS];

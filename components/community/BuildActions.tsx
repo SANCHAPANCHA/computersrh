@@ -18,10 +18,11 @@ interface Props {
   shareUrl: string;
   cardUrl: string;
   similarHref: string;
+  discussHref?: string;
   saved: boolean;
 }
 
-export function BuildActions({ buildId, likes = 0, liked = false, score, shareUrl, cardUrl, similarHref, saved }: Props) {
+export function BuildActions({ buildId, likes = 0, liked = false, score, shareUrl, cardUrl, similarHref, discussHref, saved }: Props) {
   const router = useRouter();
   const toast = useToast();
   const { viewer } = useViewer();
@@ -75,6 +76,11 @@ export function BuildActions({ buildId, likes = 0, liked = false, score, shareUr
       <a href={similarHref} className="px-btn px-btn-sm">
         <PixelIcon name="wrench" size={12} /> BUILD SOMETHING SIMILAR
       </a>
+      {discussHref ? (
+        <a href={discussHref} className="px-btn px-btn-ghost px-btn-sm">
+          <PixelIcon name="sparkle" size={12} /> DISCUSS
+        </a>
+      ) : null}
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} cardUrl={cardUrl} shareUrl={shareUrl} score={score} fileName={`rh-pc-lab-${score}.png`} saved={saved} />
     </>
   );
