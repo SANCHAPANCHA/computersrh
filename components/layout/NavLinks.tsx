@@ -62,7 +62,7 @@ function Dropdown({ group, path }: { group: Group; path: string }) {
   }, [open]);
 
   return (
-    <li ref={ref} className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+    <li ref={ref} className="relative">
       <button
         type="button"
         aria-expanded={open}

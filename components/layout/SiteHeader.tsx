@@ -14,8 +14,10 @@ export function SiteHeader({ viewer, authEnabled }: { viewer: Viewer | null; aut
       <div className="relative mx-auto flex max-w-6xl items-center gap-4">
         <Logo />
         <nav aria-label="Main" className="ml-auto hidden items-center lg:flex">
-          <div className="pixel-clip bg-chrome-100 px-2 shadow-[inset_-3px_-3px_0_#e2c3bb,inset_2px_2px_0_#fff]">
-            <NavLinks className="flex items-center" />
+          {/* clip-path lives on a background layer so it can't clip the dropdowns */}
+          <div className="relative px-2">
+            <span aria-hidden className="pixel-clip absolute inset-0 bg-chrome-100 shadow-[inset_-3px_-3px_0_#e2c3bb,inset_2px_2px_0_#fff]" />
+            <NavLinks className="relative flex items-center" />
           </div>
         </nav>
         <div className="ml-auto flex items-center gap-3 lg:ml-2">
