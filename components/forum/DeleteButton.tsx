@@ -15,7 +15,7 @@ export function DeleteButton({ kind, id, threadId }: { kind: "thread" | "reply";
     const res = kind === "thread" ? await deleteThread(id) : await deleteReply(id, threadId);
     setBusy(false);
     if (!res.ok) return toast({ tone: "error", title: "DELETE FAILED", message: res.error });
-    if (kind === "thread") router.push("/community");
+    if (kind === "thread") router.push("/forum");
     router.refresh();
   }
   return (

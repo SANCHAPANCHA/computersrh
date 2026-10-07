@@ -4,6 +4,7 @@ export interface Viewer {
   id: string;
   username: string;
   avatar: string;
+  credits: number | null;
 }
 
 export interface PublicProfile {

@@ -23,7 +23,7 @@ export function EntryForm({ options, currentId }: { options: EntryOption[]; curr
     setBusy(true);
     const res = await submitChallengeEntry(pick);
     setBusy(false);
-    if (res.ok) { toast({ tone: "success", title: "ENTRY SUBMITTED" }); router.refresh(); }
+    if (res.ok) { toast({ tone: "success", title: "ENTRY SUBMITTED", message: res.reward ? `+${res.reward} CREDITS challenge reward` : undefined }); router.refresh(); }
     else toast({ tone: "error", title: "ENTRY REJECTED", message: res.error });
   }
 

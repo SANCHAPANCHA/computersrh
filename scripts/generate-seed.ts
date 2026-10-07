@@ -9,8 +9,9 @@ import { join } from "node:path";
 import { COMPONENTS } from "../data/components";
 import { ACHIEVEMENTS } from "../data/achievements";
 import { CHALLENGE_TEMPLATES } from "../data/challenges";
+import { DEFAULT_GAME_CONFIG } from "../data/economy";
 
-const OUTPUT = "20261007000100_game_data_v2.sql";
+const OUTPUT = "20261008000100_game_data_v3.sql";
 
 const q = (v: string) => `'${v.replace(/'/g, "''")}'`;
 const j = (v: unknown) => `${q(JSON.stringify(v))}::jsonb`;
@@ -50,6 +51,10 @@ select to_char(d, 'YYYY-MM-DD'), t.title, t.description, t.rules, d::date, d::da
 from generate_series(date '2026-01-01', date '2028-12-31', interval '1 day') as d
 join templates t on t.idx = ((d::date - date '1970-01-01') % ${CHALLENGE_TEMPLATES.length})
 on conflict (id) do nothing;
+
+-- Economy tuning (edit this row in Supabase to retune live).
+insert into public.game_config (key, value) values ('economy', ${j(DEFAULT_GAME_CONFIG)})
+on conflict (key) do nothing;
 `;
 
 const out = join(import.meta.dirname, "../supabase/migrations", OUTPUT);

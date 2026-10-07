@@ -17,8 +17,13 @@ A retro pixel-art PC-building game and community platform. Pick fictional parts,
 - **Share card:** a 1200×630 PNG generated server-side with `next/og`. Download it, or share on X with a prefilled intent (nothing posts automatically). Unsaved rigs get a `/share?parts=…` link; saved rigs get `/build/[id]` with an OG image.
 - **Accounts (Supabase, email only):** register, log in, email verification, forgot/reset password, log out, persistent sessions. If you click *Save build* while logged out, you sign up inside the modal and the build saves automatically, including after email verification (the build waits in localStorage and `/save` finishes the job).
 - **Community:** public build pages, likes (one per user, with an animation), Explore tabs (Newest, Top score, Most liked, Legendary), leaderboards (Top score, Most builds, Most liked), profiles at `/u/[username]`, a dashboard, settings (username, 10 pixel avatars, bio, favourite part, password, delete account).
-- **Community board (`/community`):** topics in NEWS / BUILDS / HELP / OFF-TOPIC with live chat replies (Supabase Realtime, no reload needed). Topics can link an X post or attach one of your rigs. Rate limits: one topic per minute, one reply per 8 seconds. Authors can delete their own posts. Every X post and build page has a **Discuss** button.
-- **Live news from @ComputersRh:** on the landing page and community page. New posts appear automatically: browsers poll every 45s, and the server polls X at most every 60s (see [X feed setup](#live-x-feed-setup)).
+- **Game loop (accounts):** every player starts with the **same 5,000 credits**, builds their own main PC in the builder's "My PC" mode (`/builder?mode=rig`), then keeps upgrading it. The loop: daily check-in → credits, buy parts in `/shop`, buy or win duplicates and fuse them in `/inventory` (LV1–LV5, stats grow per category), PC level (STARTER → LEGENDARY), PC battles, repeat tomorrow. Mythic parts can only be won in the roulette.
+- **Daily (`/daily`):** check-in with a 7-day streak (250 → 300 → 350 → 400 → 500 → 600 → 1000, a missed day resets to Day 1) and one free roulette spin per day (credits or parts of any rarity, drop rates shown on the page). Results are rolled on the server, and the reel animation spins up, slows down and stops on the prize.
+- **PC Battles (`/battles`):** matchmaking against a real player within ±8 score, widening to ±15/±25 when nobody is close, with lab bots as the last fallback. The fight compares CPU, GPU, memory, thermals, power and balance, each with a small random swing. Rewards: win +150 / loss +30 credits for the first 10 battles each day, battle points, and win-streak bonuses at 3/5/10. A 10 s cooldown applies, and every battle is saved to the history.
+- **Credits ledger:** every credit movement (starting balance, check-in, roulette, purchases, battles, challenge rewards) is a row in `credit_transactions`, shown on the dashboard. Daily challenge entries pay +200 once per challenge.
+- **Forum + LIVE CHAT (`/forum`, `/community` redirects):** topics (NEWS / BUILDS / HELP / OFF-TOPIC) plus a global real-time chat room with an ONLINE counter (Supabase Realtime + Presence).
+- **Chat moderation:** server-side censor (English + Russian) that catches mixed case, s p a c e d / d.o.t.t.e.d letters, repeated letters, leetspeak and Latin/Cyrillic look-alikes. Bad words are published as `***` and every violation is recorded. Punishment ladder (chat only, not an account ban): 1st violation 1 hour mute, 2nd 24 hours, 3rd permanent chat ban. Forum posts are censored too and count toward the same ladder. Word lists live in `data/moderation.ts`.
+- **X NEWS (`/news` + home block):** a separate block for @ComputersRh posts. Each item shows the date, text, image, original link and a VIEW ON X button. See [X News setup](#x-news-setup).
 - **Achievements:** 8 achievements unlocked by database triggers, with toasts on save.
 - **Daily challenges:** 7 data-driven rule templates rotating daily (budget, power cap, case size, rarity cap, RAM, required parts). Entries are validated on the server.
 - **Polish:** responsive layout with a sticky mobile step bar, reduced-motion support, keyboard focus styles, ARIA labels, and optional WebAudio SFX (muted by default, toggle in the header).
@@ -77,7 +82,7 @@ The builder, scoring, boot sequence, reveal, share card and share links all work
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. **Run the SQL.** Either:
-   - **SQL editor:** run every file in `supabase/migrations/` **in filename order** (`20261006000000_init.sql` → `…000100_seed_game_data.sql` → `20261007000000_community_and_x_feed.sql` → `…000100_game_data_v2.sql`). If you already ran the first two, just run the two new ones. All seed files are safe to re-run; or
+   - **SQL editor:** run every file in `supabase/migrations/` **in filename order** (`20261006000000_init.sql` → … → `20261008000500_chat_moderation.sql`, 7 files). If you already ran the earlier ones, run only the new ones (`20261008000000_economy.sql`, `20261008000100_game_data_v3.sql`, `20261008000500_chat_moderation.sql`). Seed files are safe to re-run; or
    - **CLI:** `npx supabase link --project-ref <ref>` then `npx supabase db push`.
 3. **Auth → URL configuration:** set *Site URL* to your deployed URL (e.g. `https://rhpclab.vercel.app`) and add `https://<your-domain>/auth/callback` (plus `http://localhost:3000/auth/callback` for local dev) to *Redirect URLs*.
 4. **Auth → Providers → Email:** keep it enabled. "Confirm email" can be on (recommended) or off. Both flows are supported.
@@ -95,7 +100,26 @@ Supabase's built-in email sender is heavily rate-limited. For a public launch, c
 
 ### Database overview
 
-Tables: `profiles`, `components`, `builds`, `build_components`, `likes`, `achievements`, `user_achievements`, `daily_challenges`, `challenge_entries`, `forum_threads`, `forum_replies`, `x_posts`, `x_feed_state`, plus a `leaderboard` view.
+Tables: `profiles`, `components`, `builds`, `build_components`, `likes`, `achievements`, `user_achievements`, `daily_challenges`, `challenge_entries`, `forum_threads`, `forum_replies`, `x_posts`, `x_feed_state`, `game_config`, `wallets`, `credit_transactions`, `checkins`, `roulette_spins`, `inventory`, `rigs`, `battle_stats`, `battles`, `chat_messages`, `chat_sanctions`, `chat_violations`, plus a `leaderboard` view.
+
+**Game security model:** players can only *read* their own game rows. Every credit, purchase, upgrade, spin, battle and chat message is decided by a Next.js Server Action (session checked, prices, rolls and scores computed on the server). It is then written through `game_*` / `chat_*` Postgres functions that only the **service role** can execute. Those functions are atomic, keep balances from going below 0, and allow one check-in and one spin per UTC day. A database trigger also blocks muted users. DevTools edits or direct REST calls get `permission denied`.
+
+**Retuning the economy live:** edit the `economy` row in the `game_config` table (starting credits, check-in rewards, roulette weights, upgrade growth, battle rewards, PC level thresholds). Defaults live in `data/economy.ts`.
+
+## X News setup
+
+The news block has three modes and picks them automatically:
+
+1. **API:** `X_BEARER_TOKEN` is set, so new posts are mirrored automatically (see below).
+2. **Database (no API needed):** add posts as rows in `x_posts` from Supabase → SQL editor (or the Table Editor):
+
+```sql
+insert into public.x_posts (id, username, text, posted_at, media, metrics)
+values ('1234567890123456789', 'ComputersRh', 'Post text here', '2026-10-07 12:00:00+00',
+        '[{"type":"photo","url":"https://pbs.twimg.com/media/XXXX.jpg","alt":"description"}]'::jsonb, '{}'::jsonb);
+```
+   `id` is the number from the post URL (`x.com/ComputersRh/status/<id>`), which builds the VIEW ON X link. Use `'[]'::jsonb` for posts without images.
+3. **Embed:** no token and no rows, so X's official embedded timeline is shown.
 
 ## Live X feed setup
 

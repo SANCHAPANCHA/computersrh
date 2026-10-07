@@ -13,8 +13,12 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (!sb) return null;
   const { data } = await sb.auth.getUser();
   if (!data.user) return null;
-  const { data: p } = await sb.from("profiles").select("id, username, avatar").eq("id", data.user.id).maybeSingle();
-  return p ? { id: p.id, username: p.username, avatar: p.avatar } : { id: data.user.id, username: "builder", avatar: "bot" };
+  const [{ data: p }, { data: w }] = await Promise.all([
+    sb.from("profiles").select("id, username, avatar").eq("id", data.user.id).maybeSingle(),
+    sb.from("wallets").select("credits").eq("user_id", data.user.id).maybeSingle(),
+  ]);
+  const credits = w ? Number(w.credits) : null;
+  return p ? { id: p.id, username: p.username, avatar: p.avatar, credits } : { id: data.user.id, username: "builder", avatar: "bot", credits };
 });
 
 export async function getViewerEmail(): Promise<string | null> {

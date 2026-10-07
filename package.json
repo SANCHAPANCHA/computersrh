@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "tsx --test lib/pc-engine/*.test.ts",
+    "test": "tsx --test \"lib/**/*.test.ts\"",
     "db:seed:generate": "tsx scripts/generate-seed.ts"
   },
   "dependencies": {

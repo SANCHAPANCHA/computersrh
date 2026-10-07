@@ -12,6 +12,8 @@ export function XGlyph({ className }: { className?: string }) {
   );
 }
 
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
 export function XPostCard({ post, fresh, compact, discuss = true }: { post: XPost; fresh?: boolean; compact?: boolean; discuss?: boolean }) {
   const url = xPostUrl(post.username, post.id);
   const photos = post.media.slice(0, 4);
@@ -24,7 +26,11 @@ export function XPostCard({ post, fresh, compact, discuss = true }: { post: XPos
         <div className="min-w-0 flex-1 leading-tight">
           <div className="truncate text-sm font-bold">Computers RH</div>
           <div className="truncate text-xs text-dim">
-            @{post.username} · <time dateTime={post.postedAt}>{timeAgo(post.postedAt)}</time>
+            @{post.username} ·{" "}
+            <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-mint hover:underline">
+              <time dateTime={post.postedAt} title={post.postedAt}>{formatDate(post.postedAt)}</time>
+            </a>{" "}
+            · {timeAgo(post.postedAt)}
           </div>
         </div>
         {fresh ? <span className="bg-mint px-1.5 py-0.5 font-label text-[0.55rem] tracking-widest text-navy-900">NEW</span> : null}
@@ -48,7 +54,7 @@ export function XPostCard({ post, fresh, compact, discuss = true }: { post: XPos
         {post.metrics.reposts != null ? <span>⟲ {post.metrics.reposts}</span> : null}
         <span className="ml-auto flex gap-2">
           {discuss ? (
-            <Link href={`/community/new?x=${encodeURIComponent(url)}`} className="px-btn px-btn-ghost px-btn-sm !text-[0.68rem]">
+            <Link href={`/forum/new?x=${encodeURIComponent(url)}`} className="px-btn px-btn-ghost px-btn-sm !text-[0.68rem]">
               DISCUSS
             </Link>
           ) : null}

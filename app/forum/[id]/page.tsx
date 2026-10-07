@@ -17,12 +17,12 @@ import { cn, timeAgo } from "@/lib/utils";
 import { getStoredXPost } from "@/lib/x-feed/feed";
 import { X_STATUS_RE } from "@/lib/x-feed/types";
 
-export async function generateMetadata({ params }: PageProps<"/community/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/forum/[id]">): Promise<Metadata> {
   const t = await getThread((await params).id);
   return { title: t ? t.thread.title : "Topic not found" };
 }
 
-export default async function TopicPage({ params }: PageProps<"/community/[id]">) {
+export default async function TopicPage({ params }: PageProps<"/forum/[id]">) {
   const { id } = await params;
   const [data, viewer] = await Promise.all([getThread(id), getViewer()]);
   if (!data) notFound();
@@ -33,9 +33,9 @@ export default async function TopicPage({ params }: PageProps<"/community/[id]">
   return (
     <div className="page-enter mx-auto flex max-w-3xl flex-col gap-6">
       <LiveRefresh table="forum_replies" filter={`thread_id=eq.${thread.id}`} />
-      <Link href="/community" className="text-sm text-dim hover:text-mint">← Back to community</Link>
+      <Link href="/forum" className="text-sm text-dim hover:text-mint">← Back to forum</Link>
 
-      <RetroWindow title="TOPIC.TXT" footerLeft={`${thread.replyCount} replies`} footerRight={<><span className="inline-block h-2 w-2 animate-blink bg-mint" /> LIVE CHAT</>}>
+      <RetroWindow title="TOPIC.TXT" footerLeft={`${thread.replyCount} replies`} footerRight={<><span className="inline-block h-2 w-2 animate-blink bg-mint" /> LIVE</>}>
         <div className="flex flex-wrap items-center gap-2">
           <CategoryBadge category={thread.category} />
           <span className="text-xs text-faint">{timeAgo(thread.createdAt)}</span>
@@ -61,7 +61,7 @@ export default async function TopicPage({ params }: PageProps<"/community/[id]">
         {build ? <div className="mt-5 max-w-sm"><BuildCard build={build} /></div> : null}
       </RetroWindow>
 
-      <RetroWindow title="CHAT.LOG" bodyClassName="p-4 sm:p-5" footerLeft="Messages update live">
+      <RetroWindow title="REPLIES.LOG" bodyClassName="p-4 sm:p-5" footerLeft="Messages update live">
         <h2 className="mb-4 text-xl font-bold tracking-wide">REPLIES</h2>
         {replies.length ? (
           <ol className="flex flex-col gap-3">
@@ -86,7 +86,7 @@ export default async function TopicPage({ params }: PageProps<"/community/[id]">
           <p className="mb-2 text-sm text-dim">No replies yet. Start the conversation!</p>
         )}
         <div className="px-divider mt-5 pt-4">
-          {viewer ? <ReplyForm threadId={thread.id} /> : <EmptyState title="LOG IN TO REPLY" message="Create a free account to chat with the lab." action={{ href: `/login?next=/community/${thread.id}`, label: "LOG IN" }} />}
+          {viewer ? <ReplyForm threadId={thread.id} /> : <EmptyState title="LOG IN TO REPLY" message="Create a free account to chat with the lab." action={{ href: `/login?next=/forum/${thread.id}`, label: "LOG IN" }} />}
         </div>
       </RetroWindow>
     </div>

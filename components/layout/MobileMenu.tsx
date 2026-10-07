@@ -5,7 +5,7 @@ import { useState } from "react";
 import { PixelAvatar } from "@/components/ui/PixelAvatar";
 import { PixelIcon } from "@/components/ui/PixelIcon";
 import type { Viewer } from "@/types/db";
-import { NavLinks } from "./NavLinks";
+import { MobileNavLinks } from "./NavLinks";
 import { SoundToggle } from "./SoundToggle";
 
 export function MobileMenu({ viewer, authEnabled }: { viewer: Viewer | null; authEnabled: boolean }) {
@@ -34,7 +34,7 @@ export function MobileMenu({ viewer, authEnabled }: { viewer: Viewer | null; aut
                 <span className="rh-window-title !text-sm">MENU.EXE</span>
               </div>
               <div className="rh-window-body pixel-clip p-3">
-                <NavLinks className="flex flex-col [&_a]:!py-3 [&_a]:!text-lg [&_a]:!text-ink" onNavigate={close} />
+                <MobileNavLinks onNavigate={close} />
                 <div className="px-divider my-3" />
                 {viewer ? (
                   <div className="flex flex-col gap-1">
@@ -43,6 +43,7 @@ export function MobileMenu({ viewer, authEnabled }: { viewer: Viewer | null; aut
                       <span className="text-mint">@{viewer.username}</span>
                     </Link>
                     <Link href={`/u/${viewer.username}`} onClick={close} className="px-3 py-2 text-dim">PROFILE</Link>
+                    <Link href="/achievements" onClick={close} className="px-3 py-2 text-dim">ACHIEVEMENTS</Link>
                     <Link href="/settings" onClick={close} className="px-3 py-2 text-dim">SETTINGS</Link>
                   </div>
                 ) : authEnabled ? (

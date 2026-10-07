@@ -93,24 +93,32 @@ export default async function Home() {
       </section>
 
       {/* LEADERBOARD + CHALLENGE */}
-      {/* NEWS + COMMUNITY */}
-      <section className="grid gap-8 lg:grid-cols-[1fr_1.15fr]" aria-labelledby="news">
-        <RetroWindow title="NEWS_FEED.EXE" tag="𝕏" bodyClassName="p-4 sm:p-5" footerLeft="Mirrored from @ComputersRh on X">
-          <h2 id="news" className="h-display mb-4 text-3xl">LIVE FROM @COMPUTERSRH</h2>
-          <XFeed limit={3} compact />
-        </RetroWindow>
-        <RetroWindow title="COMMUNITY.EXE" bodyClassName="p-4 sm:p-5" footerLeft="Discuss news · share rigs · get help" footerRight={<Link href="/community" className="hover:underline">Open board →</Link>}>
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="h-display text-3xl">COMMUNITY BOARD</h2>
-            <PixelButton href="/community/new" variant="mint" size="sm">[ NEW TOPIC ]</PixelButton>
-          </div>
-          {topics.length ? (
-            <ThreadList threads={topics} compact />
-          ) : (
-            <EmptyState title="NO TOPICS YET" message="Be the first to start a conversation." action={{ href: "/community/new", label: "NEW TOPIC" }} />
-          )}
-        </RetroWindow>
-      </section>
+      {/* X NEWS + FORUM: two separate blocks */}
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.15fr]">
+        <section aria-labelledby="news">
+          <RetroWindow title="X_NEWS.EXE" tag="𝕏" bodyClassName="p-4 sm:p-5" footerLeft="Posts from @ComputersRh" footerRight={<Link href="/news" className="hover:underline">All news →</Link>}>
+            <h2 id="news" className="h-display mb-4 text-3xl">X NEWS</h2>
+            <XFeed limit={3} compact />
+            <PixelButton href="/news" size="sm" className="mt-4 w-full">[ MORE NEWS ]</PixelButton>
+          </RetroWindow>
+        </section>
+        <section aria-labelledby="forum">
+          <RetroWindow title="FORUM.EXE" bodyClassName="p-4 sm:p-5" footerLeft="Topics · build help · live chat" footerRight={<Link href="/forum" className="hover:underline">Open forum →</Link>}>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <h2 id="forum" className="h-display text-3xl">FORUM</h2>
+              <div className="flex flex-wrap gap-2">
+                <PixelButton href="/forum#chat" size="sm">[ LIVE CHAT ]</PixelButton>
+                <PixelButton href="/forum/new" variant="mint" size="sm">[ NEW TOPIC ]</PixelButton>
+              </div>
+            </div>
+            {topics.length ? (
+              <ThreadList threads={topics} compact />
+            ) : (
+              <EmptyState title="NO TOPICS YET" message="Be the first to start a conversation." action={{ href: "/forum/new", label: "NEW TOPIC" }} />
+            )}
+          </RetroWindow>
+        </section>
+      </div>
 
       <section className="grid gap-8 lg:grid-cols-[1fr_1.35fr]">
         <RetroWindow title="LEADERBOARD.DAT" footerLeft="Top score · public builds" footerRight={<a className="hover:underline" href="/leaderboard">Full board →</a>}>

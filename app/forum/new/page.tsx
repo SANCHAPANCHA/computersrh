@@ -8,7 +8,7 @@ import { FORUM_CATEGORIES, type ForumCategory } from "@/types/forum";
 
 export const metadata: Metadata = { title: "New topic" };
 
-export default async function NewTopicPage({ searchParams }: PageProps<"/community/new">) {
+export default async function NewTopicPage({ searchParams }: PageProps<"/forum/new">) {
   const sp = await searchParams;
   const viewer = await getViewer();
   const s = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : "");
@@ -27,7 +27,7 @@ export default async function NewTopicPage({ searchParams }: PageProps<"/communi
             builds={(await getUserBuilds(viewer.id, 30)).filter((b) => b.isPublic).map((b) => ({ id: b.id, name: b.name, score: b.score }))}
           />
         ) : (
-          <EmptyState title="LOG IN TO POST" message="Anyone can read. Create a free account to join the conversation." action={{ href: `/login?next=${encodeURIComponent(`/community/new${qs ? `?${qs}` : ""}`)}`, label: "LOG IN" }} />
+          <EmptyState title="LOG IN TO POST" message="Anyone can read. Create a free account to join the conversation." action={{ href: `/login?next=${encodeURIComponent(`/forum/new${qs ? `?${qs}` : ""}`)}`, label: "LOG IN" }} />
         )}
       </RetroWindow>
     </div>

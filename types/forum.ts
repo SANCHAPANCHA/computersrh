@@ -29,3 +29,26 @@ export interface ReplyView {
   createdAt: string;
   author: Author;
 }
+
+export const CHAT_MAX_LENGTH = 500;
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  avatar: string;
+  body: string;
+  censored: boolean;
+  createdAt: string;
+}
+
+/** A user's chat standing. `mutedUntil` is an ISO time; permanent bans ignore it. */
+export interface ChatSanction {
+  violationCount: number;
+  mutedUntil: string | null;
+  permanent: boolean;
+}
+
+export type ChatSendResult =
+  | { ok: true; message: ChatMessage; notice?: string; sanction?: ChatSanction }
+  | { ok: false; error: string; sanction?: ChatSanction };

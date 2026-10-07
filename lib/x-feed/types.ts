@@ -16,8 +16,8 @@ export interface XPost {
 }
 
 export interface XFeedResponse {
-  /** "api": posts mirrored via the X API. "embed": no API key, use X's official widget. */
-  mode: "api" | "embed";
+  /** "api": mirrored via the X API (X_BEARER_TOKEN). "db": no token, news records stored in x_posts. "embed": nothing stored, use X's official widget. */
+  mode: "api" | "db" | "embed";
   username: string;
   posts: XPost[];
   updatedAt: string;

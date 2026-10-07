@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { PixelInput, PixelSelect, PixelTextarea } from "@/components/ui/PixelInput";
+import { useToast } from "@/components/ui/PixelToast";
 import { Notice } from "@/components/ui/States";
 import { createThread } from "@/lib/db/forum-actions";
 import { FORUM_CATEGORIES, FORUM_LABELS, type ForumCategory } from "@/types/forum";
@@ -14,6 +15,7 @@ interface Props {
 
 export function NewThreadForm({ initial, builds }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,7 +33,8 @@ export function NewThreadForm({ initial, builds }: Props) {
     });
     setBusy(false);
     if (!res.ok) return setError(res.error);
-    router.push(`/community/${res.id}`);
+    if (res.notice) toast({ tone: "error", title: "CONTENT CENSORED", message: res.notice.replace(/^\w+ CENSORED · /, "") });
+    router.push(`/forum/${res.id}`);
   }
 
   return (

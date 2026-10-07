@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { PixelAvatar } from "@/components/ui/PixelAvatar";
 import { buttonClass } from "@/components/ui/PixelButton";
+import { PixelIcon } from "@/components/ui/PixelIcon";
 import type { Viewer } from "@/types/db";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
+import { ProfileMenu } from "./ProfileMenu";
 import { SoundToggle } from "./SoundToggle";
 
 export function SiteHeader({ viewer, authEnabled }: { viewer: Viewer | null; authEnabled: boolean }) {
@@ -19,11 +20,14 @@ export function SiteHeader({ viewer, authEnabled }: { viewer: Viewer | null; aut
         </nav>
         <div className="ml-auto flex items-center gap-3 lg:ml-2">
           <SoundToggle />
-          {viewer ? (
-            <Link href="/dashboard" className="hidden items-center gap-2.5 bg-navy-800/90 py-1.5 pl-1.5 pr-3 shadow-[3px_3px_0_#8f7cc6] hover:bg-navy-700 sm:flex" aria-label="Your dashboard">
-              <PixelAvatar id={viewer.avatar} size={28} />
-              <span className="max-w-[10rem] truncate text-sm text-mint">@{viewer.username}</span>
+          {viewer && viewer.credits !== null ? (
+            <Link href="/daily" className="flex h-9 items-center gap-1.5 bg-navy-800/90 px-2.5 text-sm tabular-nums text-gold shadow-[3px_3px_0_#8f7cc6] hover:bg-navy-700" aria-label={`${viewer.credits} credits. Earn more on the daily page.`} title="Credits">
+              <PixelIcon name="coin" size={14} />
+              {viewer.credits.toLocaleString("en-US")}
             </Link>
+          ) : null}
+          {viewer ? (
+            <ProfileMenu viewer={viewer} />
           ) : authEnabled ? (
             <Link href="/login" className={buttonClass("cream", "sm", "hidden sm:inline-flex")}>
               [ LOG IN ]

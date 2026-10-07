@@ -10,7 +10,7 @@ export function ThreadList({ threads, compact }: { threads: ThreadView[]; compac
     <ul className="divide-y divide-dashed divide-line border border-line">
       {threads.map((t) => (
         <li key={t.id}>
-          <Link href={`/community/${t.id}`} className="group flex items-start gap-3 px-3 py-3 hover:bg-navy-700/50">
+          <Link href={`/forum/${t.id}`} className="group flex items-start gap-3 px-3 py-3 hover:bg-navy-700/50">
             <PixelAvatar id={t.author.avatar} size={compact ? 28 : 34} className="mt-0.5" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">

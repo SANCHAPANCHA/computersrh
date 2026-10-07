@@ -10,11 +10,12 @@ export interface PartFilterState {
   sort: PartSort;
   rarity: Rarity | "ALL";
   compatibleOnly: boolean;
+  ownedOnly: boolean;
 }
 
-export const DEFAULT_FILTERS: PartFilterState = { sort: "rarity", rarity: "ALL", compatibleOnly: false };
+export const DEFAULT_FILTERS: PartFilterState = { sort: "rarity", rarity: "ALL", compatibleOnly: false, ownedOnly: false };
 
-export function PartFilters({ value, onChange, shown, total, chaos }: { value: PartFilterState; onChange: (v: PartFilterState) => void; shown: number; total: number; chaos: boolean }) {
+export function PartFilters({ value, onChange, shown, total, chaos, showOwned }: { value: PartFilterState; onChange: (v: PartFilterState) => void; shown: number; total: number; chaos: boolean; showOwned?: boolean }) {
   return (
     <div className="px-panel mt-3 flex flex-col gap-2.5 p-2.5">
       <div className="flex flex-wrap items-center gap-2">
@@ -39,6 +40,17 @@ export function PartFilters({ value, onChange, shown, total, chaos }: { value: P
             className={cn("border px-2.5 py-1.5 text-xs tracking-wider", value.compatibleOnly ? "border-mint bg-mint/15 text-mint" : "border-line-strong text-dim hover:text-ink")}
           >
             {value.compatibleOnly ? "✓ " : ""}COMPATIBLE ONLY
+          </button>
+        ) : null}
+        {showOwned ? (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={value.ownedOnly}
+            onClick={() => onChange({ ...value, ownedOnly: !value.ownedOnly })}
+            className={cn("border px-2.5 py-1.5 text-xs tracking-wider", value.ownedOnly ? "border-gold bg-gold/15 text-gold" : "border-line-strong text-dim hover:text-ink")}
+          >
+            {value.ownedOnly ? "✓ " : ""}OWNED
           </button>
         ) : null}
         <span className="ml-auto text-xs text-faint">{shown}/{total} parts</span>

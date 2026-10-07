@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useReducer } from "react";
-import { evaluateSelection } from "@/lib/pc-engine";
+import type { GameConfig } from "@/data/economy";
+import { evaluateParts, evaluateSelection } from "@/lib/pc-engine";
+import { resolveLeveled, type Levels } from "@/lib/pc-engine/levels";
 import { CATEGORIES, type Category, type GameComponent, type RgbColor, type Selection } from "@/types/game";
 
 export type Phase = "build" | "boot" | "reveal";
@@ -73,12 +75,13 @@ function reducer(s: BuilderState, a: Action): BuilderState {
   }
 }
 
-export function useBuilder(initial: Partial<BuilderState>, fromUrl: boolean) {
+export function useBuilder(initial: Partial<BuilderState>, fromUrl: boolean, opts?: { persist?: boolean; levels?: Levels; upgrades?: GameConfig["upgrades"] }) {
   const [state, dispatch] = useReducer(reducer, initialBuilder(initial));
+  const persist = opts?.persist !== false;
 
   // Restore an unfinished draft when not opened from a shared/preset link.
   useEffect(() => {
-    if (fromUrl) return;
+    if (fromUrl || !persist) return;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
@@ -88,15 +91,20 @@ export function useBuilder(initial: Partial<BuilderState>, fromUrl: boolean) {
     } catch {
       /* ignore corrupt drafts */
     }
-  }, [fromUrl]);
+  }, [fromUrl, persist]);
 
   useEffect(() => {
-    if (state.phase !== "build") return;
+    if (state.phase !== "build" || !persist) return;
     const { selection, step, chaos, rgb, name, startedAt, assisted } = state;
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ selection, step, chaos, rgb, name, startedAt, assisted }));
-  }, [state]);
+  }, [state, persist]);
 
-  const summary = useMemo(() => evaluateSelection(state.selection), [state.selection]);
+  const levels = opts?.levels;
+  const upgrades = opts?.upgrades;
+  const summary = useMemo(
+    () => (levels && upgrades ? evaluateParts(resolveLeveled(state.selection, levels, upgrades)) : evaluateSelection(state.selection)),
+    [state.selection, levels, upgrades],
+  );
   const clearDraft = useCallback(() => localStorage.removeItem(DRAFT_KEY), []);
   const buildTimeSeconds = state.startedAt && state.finishedAt && !state.assisted ? Math.round((state.finishedAt - state.startedAt) / 1000) : null;
 

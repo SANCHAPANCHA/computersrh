@@ -16,12 +16,15 @@ interface Props {
   conflicts: Conflict[];
   chaos: boolean;
   onSelect: () => void;
+  /** "My PC" mode: ownership, level and credit price. */
+  rigInfo?: { owned: boolean; level: number; spare: number; price: number; locked: boolean };
 }
 
-export function PartCard({ component: c, selected, conflicts, chaos, onSelect }: Props) {
+export function PartCard({ component: c, selected, conflicts, chaos, onSelect, rigInfo }: Props) {
   const errors = conflicts.filter((x) => x.severity === "error");
   const warnings = conflicts.filter((x) => x.severity === "warning");
-  const blocked = errors.length > 0 && !chaos;
+  const locked = Boolean(rigInfo?.locked);
+  const blocked = (errors.length > 0 && !chaos) || locked;
   const color = RARITY_COLORS[c.rarity];
 
   return (
@@ -39,13 +42,24 @@ export function PartCard({ component: c, selected, conflicts, chaos, onSelect }:
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <RarityBadge rarity={c.rarity} />
+            {rigInfo && rigInfo.level > 1 ? <span className="bg-gold px-1.5 py-0.5 font-label text-[0.58rem] tracking-widest text-navy-900">LV{rigInfo.level}</span> : null}
             {selected ? <span className="font-label text-[0.6rem] tracking-widest text-mint">✓ INSTALLED</span> : null}
           </div>
           <h3 className="mt-1.5 text-lg font-bold leading-tight">{c.name}</h3>
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-sm">
             <span className="text-mint">PERF +{c.performance}</span>
             {c.power ? <span className="text-dim">POWER {c.power}W</span> : null}
-            <span className="text-gold">{formatValue(c.price)}</span>
+            {rigInfo ? (
+              rigInfo.owned ? (
+                <span className="text-mint">OWNED{rigInfo.spare ? ` · +${rigInfo.spare} SPARE` : ""}</span>
+              ) : locked ? (
+                <span className="text-hot">ROULETTE ONLY</span>
+              ) : (
+                <span className="text-gold">{rigInfo.price.toLocaleString("en-US")} CR</span>
+              )
+            ) : (
+              <span className="text-gold">{formatValue(c.price)}</span>
+            )}
           </div>
         </div>
       </div>
@@ -81,7 +95,7 @@ export function PartCard({ component: c, selected, conflicts, chaos, onSelect }:
           aria-pressed={selected}
           className={cn("px-btn px-btn-sm w-full", selected ? "px-btn-mint" : "")}
         >
-          {blocked ? "[ INCOMPATIBLE ]" : selected ? "[ SELECTED ✓ ]" : "[ SELECT ]"}
+          {locked ? "[ WIN IN ROULETTE ]" : blocked ? "[ INCOMPATIBLE ]" : selected ? "[ SELECTED ✓ ]" : rigInfo && !rigInfo.owned ? `[ ADD · ${rigInfo.price.toLocaleString("en-US")} CR ]` : "[ SELECT ]"}
         </button>
       </div>
     </article>

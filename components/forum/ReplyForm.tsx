@@ -20,6 +20,7 @@ export function ReplyForm({ threadId }: { threadId: string }) {
     setBusy(false);
     if (!res.ok) return toast({ tone: "error", title: "MESSAGE NOT SENT", message: res.error });
     play("click");
+    if (res.notice) toast({ tone: "error", title: "CONTENT CENSORED", message: res.notice.replace(/^\w+ CENSORED · /, "") });
     setText("");
     router.refresh();
   }

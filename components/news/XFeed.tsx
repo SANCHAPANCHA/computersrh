@@ -20,7 +20,7 @@ export function XFeed({ limit = 6, compact, className }: { limit?: number; compa
     let alive = true;
     const load = async () => {
       try {
-        const res = await fetch("/api/x-feed", { cache: "no-store" });
+        const res = await fetch(`/api/x-feed?limit=${limit}`, { cache: "no-store" });
         if (!res.ok) throw new Error(String(res.status));
         const data = (await res.json()) as XFeedResponse;
         if (!alive) return;
@@ -44,7 +44,7 @@ export function XFeed({ limit = 6, compact, className }: { limit?: number; compa
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, []);
+  }, [limit]);
 
   if (!feed) return failed ? <Notice tone="error" title="FEED OFFLINE">Couldn&apos;t reach the news feed. Retrying shortly.</Notice> : <LoadingScreen label="TUNING IN..." className="!py-10" />;
 

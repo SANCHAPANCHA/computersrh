@@ -11,6 +11,8 @@ import { CATEGORIES, type Category, type Selection } from "@/types/game";
 import { AVATARS } from "@/data/avatars";
 import { getComponent } from "@/lib/pc-engine/catalog";
 import { USERNAME_RE, UUID_RE } from "./mappers";
+import { getAdminSupabase } from "@/lib/supabase/admin";
+import { getGameConfig } from "@/lib/game/config";
 
 const OFFLINE = "Accounts are offline: Supabase is not configured.";
 
@@ -158,7 +160,7 @@ export async function signOut(): Promise<void> {
   revalidatePath("/", "layout");
 }
 
-export async function submitChallengeEntry(buildId: string): Promise<ActionResult> {
+export async function submitChallengeEntry(buildId: string): Promise<ActionResult<{ reward?: number }>> {
   if (!UUID_RE.test(buildId)) return { ok: false, error: "Unknown build." };
   const { sb, user, error } = await requireUser();
   if (!sb || !user) return { ok: false, error: error! };
@@ -179,6 +181,14 @@ export async function submitChallengeEntry(buildId: string): Promise<ActionResul
   await sb.from("challenge_entries").delete().eq("challenge_id", challenge.id).eq("user_id", user.id);
   const { error: e } = await sb.from("challenge_entries").insert({ challenge_id: challenge.id, build_id: buildId, user_id: user.id });
   if (e) return { ok: false, error: e.message };
+  // First valid entry per challenge pays out once (unique index on kind+ref).
+  const admin = getAdminSupabase();
+  let reward = 0;
+  if (admin) {
+    const amount = (await getGameConfig()).challengeReward;
+    const { error: payErr } = await admin.rpc("game_apply", { p_user: user.id, p_amount: amount, p_kind: "challenge", p_ref: String(challenge.id), p_meta: {} });
+    if (!payErr) reward = amount;
+  }
   revalidatePath("/challenges");
-  return { ok: true };
+  return { ok: true, reward };
 }
